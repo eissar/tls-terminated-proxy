@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"log"
 	"net/http"
@@ -11,6 +12,25 @@ import (
 )
 
 var TargetHost = os.Getenv("PROXY_HOST")
+
+var CACertificatePath = os.Getenv("CA_CERTIFICATE_PATH")
+
+func buildTLSConfig() *tls.Config {
+	pool, err := x509.SystemCertPool()
+	if err != nil || pool == nil {
+		pool = x509.NewCertPool()
+	}
+
+	pem, err := os.ReadFile(CACertificatePath)
+	if err != nil {
+		log.Fatalf("failed to read PROXY_CA_FILE: %v", err)
+	}
+	if ok := pool.AppendCertsFromPEM(pem); !ok {
+		log.Fatal("no certs appended from PROXY_CA_FILE")
+	}
+
+	return &tls.Config{RootCAs: pool}
+}
 
 func main() {
 	if TargetHost == "" {
@@ -57,8 +77,7 @@ func main() {
 	tr.ProxyConnectHeader = http.Header{
 		"Proxy-Authorization": []string{"Basic " + tok},
 	}
-
-	tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	tr.TLSClientConfig = buildTLSConfig()
 
 	rp := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
