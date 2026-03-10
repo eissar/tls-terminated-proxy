@@ -1,6 +1,8 @@
 FROM golang:1.22-alpine AS build
 WORKDIR /src
 
+RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
+
 COPY go.mod ./
 RUN go mod download
 
@@ -10,6 +12,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
 
 FROM scratch
 WORKDIR /
+
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /out/tls-terminated-proxy /tls-terminated-proxy
 
 EXPOSE 8080
