@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/base64"
 	"log"
 	"net/http"
@@ -11,34 +9,11 @@ import (
 	"os"
 )
 
-var CACertificatePath = os.Getenv("CA_CERTIFICATE_PATH")
-
 var TargetHost = os.Getenv("PROXY_HOST")
-
-func buildTLSConfig() *tls.Config {
-	pool, err := x509.SystemCertPool()
-	if err != nil || pool == nil {
-		pool = x509.NewCertPool()
-	}
-
-	pem, err := os.ReadFile(CACertificatePath)
-	if err != nil {
-		log.Fatalf("failed to read PROXY_CA_FILE: %v", err)
-	}
-	if ok := pool.AppendCertsFromPEM(pem); !ok {
-		log.Fatal("no certs appended from PROXY_CA_FILE")
-	}
-
-	return &tls.Config{RootCAs: pool}
-}
 
 func main() {
 	if TargetHost == "" {
 		log.Fatal("PROXY_HOST environment variable is required")
-	}
-
-	if _, err := os.Stat(CACertificatePath); os.IsNotExist(err) {
-		log.Fatal("rootCA.crt file does not exist")
 	}
 
 	proxyRaw := os.Getenv("PROXY_URL")
@@ -69,7 +44,6 @@ func main() {
 
 	tr := http.DefaultTransport.(*http.Transport).Clone()
 	tr.Proxy = http.ProxyURL(proxyURL)
-	tr.TLSClientConfig = buildTLSConfig()
 
 	if proxyURL.User == nil {
 		log.Fatal("User was somehow nil")
