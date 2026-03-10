@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -69,6 +70,18 @@ func main() {
 	tr := http.DefaultTransport.(*http.Transport).Clone()
 	tr.Proxy = http.ProxyURL(proxyURL)
 	tr.TLSClientConfig = buildTLSConfig()
+
+	if proxyURL.User == nil {
+		log.Fatal("User was somehow nil")
+	}
+
+	user := proxyURL.User.Username()
+	pass, _ := proxyURL.User.Password()
+	tok := base64.StdEncoding.EncodeToString([]byte(user + ":" + pass))
+
+	tr.ProxyConnectHeader = http.Header{
+		"Proxy-Authorization": []string{"Basic " + tok},
+	}
 
 	rp := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
