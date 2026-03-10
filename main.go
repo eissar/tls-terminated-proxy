@@ -36,7 +36,7 @@ func main() {
 		log.Fatal("PROXY_HOST environment variable is required")
 	}
 
-	if _, err := os.Stat("./rootCA.crt"); os.IsNotExist(err) {
+	if _, err := os.Stat(CACertificatePath); os.IsNotExist(err) {
 		log.Fatal("rootCA.crt file does not exist")
 	}
 
