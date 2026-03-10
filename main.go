@@ -62,7 +62,7 @@ func main() {
 
 	rp := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
-			req.URL.Scheme = "https"
+			req.URL.Scheme = "http"
 			req.URL.Host = TargetHost
 			req.Host = TargetHost
 		},
