@@ -20,7 +20,7 @@ func buildTLSConfig() *tls.Config {
 		pool = x509.NewCertPool()
 	}
 
-	pem, err := os.ReadFile("./rootCA.crt")
+	pem, err := os.ReadFile(CACertificatePath)
 	if err != nil {
 		log.Fatalf("failed to read PROXY_CA_FILE: %v", err)
 	}
