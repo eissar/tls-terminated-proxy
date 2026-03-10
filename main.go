@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"log"
 	"net/http"
@@ -56,6 +57,8 @@ func main() {
 	tr.ProxyConnectHeader = http.Header{
 		"Proxy-Authorization": []string{"Basic " + tok},
 	}
+
+	tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 	rp := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
